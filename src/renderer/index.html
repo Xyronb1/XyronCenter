@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob:;">
+  <title>Xyron center</title>
+
+  <link rel="stylesheet" href="../../node_modules/xterm/css/xterm.css" />
+  <link rel="stylesheet" href="styles/hud-core.css" />
+  <link rel="stylesheet" href="styles/terminal.css" />
+  <link rel="stylesheet" href="styles/boot-sequence.css" />
+</head>
+<body>
+  <!-- Signature intro (sits on top; the interface below is already running) -->
+  <div id="boot-overlay" class="boot-overlay"></div>
+
+  <div id="hud-app" class="hud-app">
+
+    <!-- Header ---------------------------------------------------------- -->
+    <header class="hud-zone hud-header">
+      <div class="header-left">
+        <span class="brand-title">Xyron</span>
+        <span class="brand-sub">center</span>
+      </div>
+
+      <div class="header-center">
+        <div class="clock-display" id="hud-clock">--:--:--.---</div>
+        <div class="header-meta">
+          <span class="date-display" id="hud-date">--.--.----</span>
+          <span class="header-divider">/</span>
+          <span class="uptime-display" id="hud-uptime">UPTIME: 0d 0h 0m 0s</span>
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div id="op-badge" class="op-badge op-user" title="Security context">STANDARD</div>
+        <div class="window-controls">
+          <button id="btn-win-minimize" class="win-btn" title="Minimize">
+            <svg viewBox="0 0 10 1"><line x1="0" y1="0.5" x2="10" y2="0.5" stroke="currentColor" stroke-width="1.2"/></svg>
+          </button>
+          <button id="btn-win-maximize" class="win-btn" title="Maximize / Restore">
+            <svg viewBox="0 0 10 10"><rect x="0.5" y="0.5" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.2"/></svg>
+          </button>
+          <button id="btn-win-close" class="win-btn win-close" title="Close">
+            <svg viewBox="0 0 10 10">
+              <line x1="0.5" y1="0.5" x2="9.5" y2="9.5" stroke="currentColor" stroke-width="1.2"/>
+              <line x1="9.5" y1="0.5" x2="0.5" y2="9.5" stroke="currentColor" stroke-width="1.2"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Left: hardware ---------------------------------------------------- -->
+    <aside class="hud-zone hud-telemetry">
+      <div class="panel-header">
+        <span class="panel-tag">01 / TELEMETRY</span>
+        <h2 class="panel-title">Hardware</h2>
+      </div>
+
+      <div class="telemetry-scroll-area">
+        <section class="telemetry-section cpu-summary-section">
+          <div class="section-subhead">
+            <span class="subhead-title">CPU</span>
+            <span id="cpu-overall-percent" class="stat-highlight">0%</span>
+          </div>
+          <div id="cpu-model-label" class="hardware-name-label">DETECTING PROCESSOR...</div>
+          <div class="gauge-bar-track"><div id="cpu-overall-bar" class="gauge-bar-fill" style="width: 0%;"></div></div>
+          <div class="cpu-meta-row">
+            <span>THREADS <strong id="cpu-threads-val">--</strong></span>
+            <span>CORES <strong id="cpu-cores-val">--</strong></span>
+            <span>CLOCK <strong id="cpu-clock-val">LIVE</strong></span>
+          </div>
+        </section>
+
+        <section class="telemetry-section per-core-section">
+          <div class="section-subhead">
+            <span class="subhead-title">PER-CORE</span>
+            <span class="subhead-badge">LOGICAL THREADS</span>
+          </div>
+          <div id="cpu-cores-container" class="per-core-grid"></div>
+        </section>
+
+        <section class="telemetry-section ram-section">
+          <div class="section-subhead">
+            <span class="subhead-title">MEMORY</span>
+            <span id="ram-percent-val" class="stat-highlight">0%</span>
+          </div>
+          <div class="gauge-bar-track"><div id="ram-bar-fill" class="gauge-bar-fill ram-fill" style="width: 0%;"></div></div>
+          <div class="metric-dual-row">
+            <span>USED <strong id="ram-used-val">-- GB</strong></span>
+            <span>TOTAL <strong id="ram-total-val">-- GB</strong></span>
+          </div>
+          <div class="metric-sub-row">
+            <span>FREE <strong id="ram-free-val">-- GB</strong></span>
+          </div>
+        </section>
+
+        <section class="telemetry-section gpu-section">
+          <div class="section-subhead">
+            <span class="subhead-title">GPU</span>
+            <span id="gpu-load-val" class="stat-highlight">--%</span>
+          </div>
+          <div id="gpu-name-label" class="hardware-name-label">DETECTING GPU...</div>
+          <div class="gauge-bar-track"><div id="gpu-bar-fill" class="gauge-bar-fill gpu-fill" style="width: 0%;"></div></div>
+          <div class="metric-dual-row">
+            <span>VRAM <strong id="vram-used-val">-- MB</strong></span>
+            <span>LIMIT <strong id="vram-total-val">-- MB</strong></span>
+          </div>
+          <div class="metric-sub-row">
+            <span>POWER <strong id="gpu-power-val">-- W</strong></span>
+          </div>
+        </section>
+
+        <section class="telemetry-section thermal-section">
+          <div class="section-subhead">
+            <span class="subhead-title">THERMAL</span>
+            <span class="subhead-badge">SENSORS</span>
+          </div>
+          <div class="thermal-grid">
+            <div class="thermal-card">
+              <span class="sensor-name">CPU</span>
+              <span id="temp-cpu-val" class="sensor-val badge-sensor">--</span>
+            </div>
+            <div class="thermal-card">
+              <span class="sensor-name">GPU</span>
+              <span id="temp-gpu-val" class="sensor-val badge-sensor">--</span>
+            </div>
+            <div class="thermal-card">
+              <span class="sensor-name">NVMe</span>
+              <span id="temp-nvme-val" class="sensor-val badge-sensor">--</span>
+            </div>
+            <div class="thermal-card">
+              <span class="sensor-name">BOARD</span>
+              <span id="temp-mb-val" class="sensor-val badge-sensor">--</span>
+            </div>
+          </div>
+          <div class="fan-readout-row">
+            <span class="fan-label">FAN</span>
+            <span id="fan-rpm-val" class="fan-val badge-sensor">--</span>
+          </div>
+        </section>
+
+        <section class="telemetry-section storage-section">
+          <div class="section-subhead">
+            <span class="subhead-title">STORAGE</span>
+            <span class="subhead-badge">DRIVES</span>
+          </div>
+          <div id="drive-list" class="drive-list"><div class="drive-empty">SCANNING...</div></div>
+        </section>
+
+        <section class="telemetry-section network-section">
+          <div class="section-subhead">
+            <span class="subhead-title">NETWORK</span>
+            <span id="net-adapter-label" class="subhead-adapter">DETECTING...</span>
+          </div>
+          <div class="net-counters-row">
+            <div class="net-counter rx">
+              <span class="net-dir-label">IN</span>
+              <span id="net-rx-rate" class="net-rate-val">0 B/s</span>
+            </div>
+            <div class="net-counter tx">
+              <span class="net-dir-label">OUT</span>
+              <span id="net-tx-rate" class="net-rate-val">0 B/s</span>
+            </div>
+          </div>
+          <div class="sparkline-wrapper">
+            <canvas id="net-sparkline-canvas" width="280" height="42"></canvas>
+          </div>
+        </section>
+      </div>
+    </aside>
+
+    <!-- Center: terminal -------------------------------------------------- -->
+    <main class="hud-zone hud-terminal">
+      <div class="terminal-hud-header">
+        <div class="term-title-box">
+          <span class="panel-tag">02 / TERMINAL</span>
+          <span id="term-shell-badge" class="term-shell-badge">PowerShell · ConPTY</span>
+        </div>
+        <div class="term-cwd-box">
+          <span id="term-cwd-display" class="cwd-path">--</span>
+        </div>
+        <div class="term-meta-box">
+          <span class="meta-item"><strong id="term-geometry" class="meta-val">100x30</strong></span>
+        </div>
+        <div class="term-actions">
+          <button class="term-act-btn" data-term-action="copy" title="Copy selection (Ctrl+Shift+C)">COPY</button>
+          <button class="term-act-btn" data-term-action="paste" title="Paste (Ctrl+Shift+V / right click)">PASTE</button>
+          <button class="term-act-btn" data-term-action="search" title="Search scrollback (Ctrl+Shift+F)">FIND</button>
+          <button class="term-act-btn" data-term-action="clear" title="Clear scrollback (Ctrl+Shift+K)">CLR</button>
+          <button class="term-act-btn" data-term-action="save-log" title="Save output to Documents\XyronCenter\logs (Ctrl+Shift+S)">SAVE</button>
+          <button class="term-act-btn term-act-primary" data-term-action="palette" title="Command palette (Ctrl+Shift+P)">CMDS</button>
+          <button class="term-act-btn" data-term-action="font-down" title="Smaller text (Ctrl+-)">A-</button>
+          <button class="term-act-btn" data-term-action="font-up" title="Bigger text (Ctrl+=)">A+</button>
+        </div>
+      </div>
+
+      <div id="terminal-container" class="terminal-container">
+        <div id="terminal-host" class="terminal-host"></div>
+        <div id="term-search" class="term-search hidden">
+          <input id="term-search-input" type="text" placeholder="search..." autocomplete="off" spellcheck="false" />
+          <span id="term-search-count" class="term-search-count"></span>
+          <button data-term-search="prev" title="Previous (Shift+Enter)">&uarr;</button>
+          <button data-term-search="next" title="Next (Enter)">&darr;</button>
+          <button data-term-search="close" title="Close (Esc)">&times;</button>
+        </div>
+        <div id="term-toast" class="term-toast"></div>
+        <div class="term-drop-hint">DROP TO INSERT PATH</div>
+      </div>
+    </main>
+
+    <!-- Right: processes -------------------------------------------------- -->
+    <aside class="hud-zone hud-processes">
+      <div class="process-monitor-subpane">
+        <div class="panel-header">
+          <div class="header-with-count">
+            <span class="panel-tag">03 / PROCESSES</span>
+            <span id="proc-total-count" class="badge-count">0 PROCS</span>
+          </div>
+          <h2 class="panel-title">Workloads</h2>
+        </div>
+
+        <div class="process-filter-bar">
+          <input type="text" id="proc-search-input" class="hud-input" placeholder="filter process / pid" autocomplete="off" spellcheck="false" />
+        </div>
+
+        <div class="process-sort-bar">
+          <span class="sort-label">SORT</span>
+          <button class="sort-btn active" data-sort="mem">RAM</button>
+          <button class="sort-btn" data-sort="pid">PID</button>
+          <button class="sort-btn" data-sort="name">NAME</button>
+        </div>
+
+        <div class="process-table-container">
+          <table class="hud-table" id="proc-table">
+            <thead>
+              <tr>
+                <th class="col-pid">PID</th>
+                <th class="col-name">IMAGE</th>
+                <th class="col-mem">MEMORY</th>
+              </tr>
+            </thead>
+            <tbody id="proc-table-body"></tbody>
+          </table>
+        </div>
+
+        <div class="process-action-bar">
+          <div class="selected-proc-info" id="selected-proc-info">no process selected</div>
+          <button id="btn-kill-process" class="hud-btn kill-btn" disabled>TERMINATE</button>
+        </div>
+        <div id="proc-toast" class="proc-toast hidden"></div>
+      </div>
+
+      <div class="hex-matrix-subpane">
+        <div class="panel-header hex-header">
+          <div class="header-with-count">
+            <span class="panel-tag">04 / ENTROPY</span>
+            <span id="hex-rate-indicator" class="badge-entropy">CNG</span>
+          </div>
+        </div>
+        <div class="hex-matrix-viewport">
+          <pre id="hex-matrix-display" class="hex-matrix-content">0x00400000:  00 00 00 00 00 00 00 00   00 00 00 00 00 00 00 00  |................|</pre>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Bottom: directory ------------------------------------------------- -->
+    <footer class="hud-zone hud-directory">
+      <div class="directory-header-row">
+        <div class="dir-title-box">
+          <span class="panel-tag">05 / DIRECTORY</span>
+        </div>
+
+        <div id="dir-breadcrumbs" class="dir-breadcrumbs">
+          <span class="breadcrumb-item">C:</span>
+        </div>
+
+        <div class="dir-controls-box">
+          <span id="dir-sync-badge" class="sync-badge">SYNCED</span>
+          <button id="btn-dir-refresh" class="hud-btn-mini" title="Refresh">⟳</button>
+        </div>
+      </div>
+
+      <div id="dir-tree-container" class="dir-tree-container">
+        <div id="dir-tree-list" class="dir-tree-list"></div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Command palette (Ctrl+Shift+P) -->
+  <div id="cmd-palette" class="cmd-palette hidden">
+    <div class="cmd-palette-box" role="dialog" aria-label="Command palette">
+      <input id="cmd-palette-input" type="text" placeholder="type a command, tool or theme..." autocomplete="off" spellcheck="false" />
+      <div id="cmd-palette-list" class="cmd-palette-list"></div>
+      <div class="cmd-palette-foot">&uarr;&darr; select &middot; ENTER run &middot; SHIFT+ENTER insert only &middot; ESC close</div>
+    </div>
+  </div>
+
+  <!-- Directory item context menu -->
+  <div id="dir-menu" class="dir-menu hidden"></div>
+
+  <script src="../../node_modules/xterm/lib/xterm.js"></script>
+  <script src="../../node_modules/@xterm/addon-fit/lib/addon-fit.js"></script>
+  <script src="js/boot-audio.js"></script>
+  <script src="js/boot-sequence.js"></script>
+  <script src="js/telemetry-view.js"></script>
+  <script src="js/terminal-view.js"></script>
+  <script src="js/command-palette.js"></script>
+  <script src="js/process-view.js"></script>
+  <script src="js/directory-tree.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

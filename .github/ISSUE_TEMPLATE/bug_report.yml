@@ -1,0 +1,48 @@
+name: Bug report
+description: Something does not work as expected
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for reporting! Please check existing issues first. Security problems go to SECURITY.md, not here.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: A clear description of the bug and what you expected instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the command palette
+        2. Type "ports" and press Enter
+        3. ...
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Xyron Center version
+      placeholder: v1.0.0 (portable)
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Windows version
+      placeholder: Windows 11 23H2 / Windows 10 LTSC 21H2
+    validations:
+      required: true
+  - type: dropdown
+    id: elevated
+    attributes:
+      label: Did you accept the UAC prompt at launch?
+      options: ["Yes (administrator)", "No (limited mode)", "Not sure"]
+  - type: textarea
+    id: log
+    attributes:
+      label: Terminal log or screenshot
+      description: Press Ctrl+Shift+S in the app and attach the saved file, or drag in a screenshot. Remove anything private first.

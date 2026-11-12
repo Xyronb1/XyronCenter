@@ -1,0 +1,150 @@
+/**
+ * XYRON CENTER - Signature Boot Intro Stylesheet
+ * File: src/renderer/styles/boot-sequence.css
+ *
+ * Pure black screen; "Xyron" then "center" are drawn left-to-right in a
+ * handwriting script (white), as if signed, with a soft pen-nib glow tracing
+ * the stroke. A thin accent hairline settles beneath, then the overlay fades
+ * into the live HUD. Deliberately restrained - no neon glitch, no POST spam.
+ */
+
+.boot-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: #000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  opacity: 1;
+  transition: opacity 0.22s ease;
+}
+
+.boot-overlay.boot-fade-out { opacity: 0; }
+.boot-overlay.boot-hidden { display: none; opacity: 0; }
+
+/* Signature stack ------------------------------------------------------- */
+.boot-sign-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  user-select: none;
+}
+
+.boot-sign {
+  position: relative;
+  color: #ffffff;
+  font-family: 'Segoe Script', 'Ink Free', 'Brush Script MT', 'Lucida Handwriting', cursive;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+/* The written text is clipped from the right, then revealed left-to-right. */
+.boot-sign-text {
+  display: inline-block;
+  clip-path: inset(0 100% 0 0);
+  opacity: 0;
+}
+
+.boot-sign-primary { font-size: 112px; font-weight: 600; letter-spacing: 1px; }
+.boot-sign-secondary {
+  font-size: 58px;
+  font-weight: 500;
+  margin-top: -14px;
+  margin-left: 86px;        /* nudge like a signature's trailing word */
+  color: #e9eef5;
+}
+
+/* Reveal animation: the clip opens left-to-right as the nib travels.
+   Durations come from the boot orchestrator so a custom intro length stays in sync. */
+.boot-sign-primary.signing .boot-sign-text {
+  animation: signReveal var(--sign-primary-dur, 620ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+.boot-sign-secondary.signing .boot-sign-text {
+  animation: signReveal var(--sign-secondary-dur, 480ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes signReveal {
+  0%   { clip-path: inset(0 100% 0 0); opacity: 1; }
+  100% { clip-path: inset(0 0 0 0);    opacity: 1; }
+}
+
+/* Pen nib: a soft glowing dot that traces along the word while it is drawn. */
+.boot-sign-nib {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 7px;
+  height: 7px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: #ffffff;
+  box-shadow: 0 0 10px 3px rgba(255, 255, 255, 0.85), 0 0 22px 6px rgba(255, 255, 255, 0.4);
+  opacity: 0;
+}
+
+.boot-sign-primary.signing .boot-sign-nib {
+  animation: nibTrace var(--sign-primary-dur, 620ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+.boot-sign-secondary.signing .boot-sign-nib {
+  animation: nibTrace var(--sign-secondary-dur, 480ms) cubic-bezier(0.22, 0.61, 0.36, 1) forwards;
+}
+
+@keyframes nibTrace {
+  0%   { left: 0;    opacity: 0; }
+  12%  { opacity: 1; }
+  88%  { opacity: 1; }
+  100% { left: 100%; opacity: 0; }
+}
+
+/* Unused in the script reveal (kept for markup compatibility). */
+.boot-sign-mask { display: none; }
+
+/* Accent hairline under the signature. */
+.boot-sign-rule {
+  width: 0;
+  height: 2px;
+  margin-top: 16px;
+  background: #00f3ff;
+  box-shadow: 0 0 12px rgba(0, 243, 255, 0.6);
+  opacity: 0.9;
+  align-self: center;
+  transition: width var(--sign-rule-dur, 320ms) ease;
+}
+
+.boot-sign-rule.drawn { width: 280px; }
+
+/* Skip hint (bottom, very subtle). */
+.boot-skip-hint {
+  position: absolute;
+  bottom: 34px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'Consolas', 'Courier New', monospace;
+  font-size: 11px;
+  letter-spacing: 3px;
+  color: rgba(255, 255, 255, 0.35);
+  opacity: 0;
+  animation: hintFade 0.6s ease 0.6s forwards;
+}
+
+.boot-skip-hint .skip-key {
+  color: rgba(255, 255, 255, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+
+@keyframes hintFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Small-screen fallback. */
+@media (max-width: 720px) {
+  .boot-sign-primary { font-size: 72px; }
+  .boot-sign-secondary { font-size: 40px; margin-left: 54px; }
+  .boot-sign-rule.drawn { width: 200px; }
+}
