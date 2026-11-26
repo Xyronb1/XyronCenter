@@ -13,6 +13,7 @@
 
 <br /><br />
 
+<a href="../../releases/latest"><img src="https://img.shields.io/badge/release-v1.1.0-000000?style=flat-square&logo=github&logoColor=white" alt="Latest release v1.1.0" /></a>
 <img src="https://img.shields.io/badge/platform-Windows%2010%20%7C%2011%20x64-000000?style=flat-square&logo=windows&logoColor=white" alt="Platform" />
 <img src="https://img.shields.io/badge/Electron-45-000000?style=flat-square&logo=electron&logoColor=white" alt="Electron 45" />
 <img src="https://img.shields.io/badge/terminal-ConPTY%20%2B%20xterm.js-000000?style=flat-square&logo=windowsterminal&logoColor=white" alt="ConPTY + xterm.js" />
@@ -38,6 +39,9 @@
 <img src="docs/assets/hero.png" alt="Xyron Center main screen: hardware telemetry, terminal, process list and directory panel" width="100%" />
 
 <br />
+
+> [!NOTE]
+> **New in v1.1.0** — A redrawn signature **X** app icon, and **system-tray quick access**: closing the window now hides Xyron Center to the notification area (the ▲ overflow) instead of quitting, so it is one click away and the boot intro no longer replays until a real exit. See [the changelog](CHANGELOG.md).
 
 ## Why Xyron Center?
 
@@ -121,6 +125,12 @@ Most of the time you are juggling a terminal, Task Manager, File Explorer and a 
 <img src="docs/assets/themes.png" alt="The same screen in default, amber, cyan and green themes" width="100%" />
 
 <sub><b>Live themes:</b> <code>/xyron theme preset amber</code>, <code>cyan</code>, <code>green</code>, any <code>#hex</code>, or classic <code>color 0a</code>.</sub>
+
+<br /><br />
+
+<img src="docs/assets/quick-access.png" alt="System-tray quick access: closing the window hides it to the tray, one click restores it, no boot replay" width="100%" />
+
+<sub><b>Quick access & new icon (v1.1.0):</b> closing the window hides Xyron Center to the notification area (the ▲ overflow). One click on the tray icon brings it back — with no boot-intro replay. Only <b>Çıkış</b> ends the app.</sub>
 
 <br /><br />
 
