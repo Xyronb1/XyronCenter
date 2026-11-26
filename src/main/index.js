@@ -65,6 +65,9 @@ const isElectron = typeof electron === 'object' && electron !== null && typeof e
 const app = isElectron ? electron.app : null;
 const BrowserWindow = isElectron ? electron.BrowserWindow : null;
 const ipcMain = isElectron ? electron.ipcMain : null;
+const Tray = isElectron ? electron.Tray : null;
+const Menu = isElectron ? electron.Menu : null;
+const nativeImage = isElectron ? electron.nativeImage : null;
 
 // Apply Chromium switches before app ready (R2 requirement for procedural Web Audio)
 if (isElectron && app) {
@@ -73,6 +76,8 @@ if (isElectron && app) {
   app.commandLine.appendSwitch('high-dpi-support', '1');
   app.commandLine.appendSwitch('force-device-scale-factor', '1');
   app.commandLine.appendSwitch('disable-http-cache');
+  // Correct taskbar/tray grouping and icon on Windows.
+  if (typeof app.setAppUserModelId === 'function') app.setAppUserModelId('com.xyron.center');
 }
 
 // Application State Bag
@@ -83,6 +88,12 @@ let ptyManager = null;
 let elevationDaemon = null;
 let configStore = null;
 let processElevated = false; // set by ensureElevated() before any window exists
+
+// System-tray (notification-area) state. The window hides to the tray on close
+// and only a real "Çıkış" / app.quit() ends the process; see createTray().
+let tray = null;
+let isQuitting = false;       // true once a genuine quit is in progress
+let trayHintShown = false;    // one-time "running in tray" balloon guard
 
 // Active Directory Watcher State
 let currentWatchedDir = null;
@@ -355,6 +366,83 @@ function resolveInitialCwd(store) {
   return fallback;
 }
 
+/**
+ * Resolve the app icon on disk, whether running from source or inside app.asar.
+ * @returns {string} absolute path to icon.ico (preferred) or icon.png
+ */
+function resolveIconPath() {
+  const base = path.join(__dirname, '../../assets');
+  const unpacked = base.replace('app.asar', 'app.asar.unpacked'); // real file in packaged builds
+  const candidates = [
+    path.join(unpacked, 'icon.ico'),
+    path.join(base, 'icon.ico'),
+    path.join(unpacked, 'icon.png'),
+    path.join(base, 'icon.png'),
+    path.resolve(__dirname, '../../../2_Proje_Dosyalari_Source/assets/icon.ico')
+  ];
+  for (const p of candidates) {
+    try { if (fs.existsSync(p)) return p; } catch (_e) {}
+  }
+  return candidates[1];
+}
+
+/**
+ * Bring the window back from the tray / minimized state and focus it. Does not
+ * reload the renderer, so the boot intro never replays while the app stays open.
+ */
+function showMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed?.()) return;
+  if (mainWindow.isMinimized?.()) mainWindow.restore();
+  if (!mainWindow.isVisible?.()) mainWindow.show();
+  mainWindow.focus();
+}
+
+/**
+ * Create the notification-area (system tray) icon with a quick-access menu.
+ * Left-click toggles the window; "Çıkış" is the only real way to end the app.
+ * Safe no-op when the Tray API is unavailable.
+ */
+function createTray() {
+  if (!Tray || tray) return;
+  try {
+    let image = resolveIconPath();
+    if (nativeImage && typeof nativeImage.createFromPath === 'function') {
+      const img = nativeImage.createFromPath(image);
+      if (img && !img.isEmpty()) image = img;
+    }
+    tray = new Tray(image);
+    tray.setToolTip('Xyron Center');
+
+    const contextMenu = Menu.buildFromTemplate([
+      { label: 'Xyron Center', enabled: false },
+      { type: 'separator' },
+      { label: 'Göster', click: () => showMainWindow() },
+      {
+        label: 'Gizle',
+        click: () => { if (mainWindow && !mainWindow.isDestroyed?.()) mainWindow.hide(); }
+      },
+      { type: 'separator' },
+      {
+        label: 'Çıkış',
+        click: () => { isQuitting = true; app.quit(); }
+      }
+    ]);
+    tray.setContextMenu(contextMenu);
+
+    // A single click brings the HUD straight back from the tray.
+    tray.on('click', () => {
+      if (mainWindow && mainWindow.isVisible?.() && !mainWindow.isMinimized?.()) {
+        mainWindow.focus();
+      } else {
+        showMainWindow();
+      }
+    });
+    tray.on('double-click', () => showMainWindow());
+  } catch (_e) {
+    tray = null; // tray is a convenience; never let its failure break startup
+  }
+}
+
 function createMainWindow() {
   // Persistent user configuration (boot intro, theme, last directory)
   configStore = new ConfigStore({ electronApp: app });
@@ -521,6 +609,26 @@ function createMainWindow() {
     });
   }
 
+  // Quick-access tray: closing the window hides it there instead of quitting,
+  // so the HUD stays one click away and its boot intro is not replayed on return.
+  if (!SMOKE) createTray();
+
+  mainWindow.on('close', (event) => {
+    if (!isQuitting && tray) {
+      event.preventDefault();
+      mainWindow.hide();
+      if (!trayHintShown) {
+        trayHintShown = true;
+        try {
+          tray.displayBalloon({
+            title: 'Xyron Center',
+            content: 'Arka planda calisiyor. Simgeden geri acabilir, "Cikis" ile tamamen kapatabilirsin.'
+          });
+        } catch (_e) {}
+      }
+    }
+  });
+
   mainWindow.on('closed', () => {
     cleanupServices({
       telemetryEngine,
@@ -577,11 +685,10 @@ async function startApplication() {
   if (!hasLock) {
     app.quit();
   } else {
+    // Launching the app again while it lives in the tray just brings it back,
+    // without starting a second copy or replaying the boot intro.
     app.on('second-instance', () => {
-      if (mainWindow) {
-        if (mainWindow.isMinimized()) mainWindow.restore();
-        mainWindow.focus();
-      }
+      showMainWindow();
     });
 
     app.whenReady().then(() => {
@@ -609,6 +716,11 @@ async function startApplication() {
     });
 
     app.on('before-quit', () => {
+      isQuitting = true; // let the window close for real instead of hiding to tray
+      if (tray) {
+        try { tray.destroy(); } catch (_e) {}
+        tray = null;
+      }
       cleanupServices({
         telemetryEngine,
         ptyManager,

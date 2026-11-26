@@ -3,6 +3,16 @@
 All notable changes to this project are documented here.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and the project uses [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] — 2026-11-26
+
+### Added
+- **System-tray quick access.** Closing the window now hides Xyron Center to the Windows notification area (the ▲ overflow) instead of quitting. A single click on the tray icon brings the HUD straight back; the tray menu has *Göster*, *Gizle* and *Çıkış*. Only *Çıkış* (or a real quit) ends the process.
+- **No boot-intro replay while running.** Because the window hides to the tray instead of closing, the signature boot intro plays only on a genuine fresh launch. Reopening from the tray — or relaunching the exe while it is still running — brings the HUD back instantly with no animation.
+
+### Changed
+- New app icon: a handwritten signature **X**, white on black, matching the brand. Regenerated `assets/icon.ico` (16–256 px) and `assets/icon.png`.
+- `assets/icon.ico` / `icon.png` are now unpacked from the asar so the tray icon always loads in packaged builds.
+
 ## [1.0.0] — 2026-11-12
 
 First public release.

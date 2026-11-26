@@ -100,6 +100,7 @@ Most of the time you are juggling a terminal, Task Manager, File Explorer and a 
 - `/op status`, `/op whoami`, `/op !!` (repeat the last command)
 - `/xyron theme …`: live recoloring with presets or any hex color
 - `/xyron boot …`: intro on or off, length, logo text, accent color, procedural sound and CRT scanlines
+- **Quick-access tray**: closing the window hides it to the notification area instead of quitting, so the HUD is one click away and the boot intro never replays until a real exit
 
 </td>
 </tr>
@@ -279,6 +280,10 @@ Commands are classified by syntax and sent to the shell that understands them. T
 | **System** | Top processes by CPU / memory, drive usage, Windows version and last boot, running services, startup programs, recent system errors, `PATH` entries, biggest files here |
 | **Repair** | `ipconfig /flushdns`, `sfc /scannow`, `DISM /RestoreHealth`. These are *inserted only*, never run automatically |
 | **Theme** | Every preset, reset, intro preview |
+
+### Window & tray
+
+Closing the window (the header **✕**) hides Xyron Center to the Windows notification area (the ▲ overflow next to the clock) instead of quitting. Click the tray icon to bring it back instantly — the boot intro does **not** replay while it stays there. To end the app for real, right-click the tray icon and choose **Çıkış**; the next launch then shows the full intro again.
 
 ### Configuration
 

@@ -1,6 +1,6 @@
 {
   "name": "xyron-center",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "XYRON CENTER - Standalone Full-Screen Sci-Fi HUD Workstation Telemetry & Terminal Utility",
   "main": "src/main/index.js",
   "author": "Xyron",
@@ -67,7 +67,9 @@
     ],
     "asar": true,
     "asarUnpack": [
-      "**/node_modules/node-pty/**/*"
+      "**/node_modules/node-pty/**/*",
+      "assets/icon.ico",
+      "assets/icon.png"
     ],
     "portable": {
       "artifactName": "XyronCenter-Portable.exe",
